@@ -29,7 +29,7 @@ impl Default for FlyingCamera {
         Self {
             enabled: true,
             move_speed: 4.0,
-            rotate_speed: 0.2,
+            rotate_speed: 0.1,
             max_pitch_degrees: 90.0,
             current_eulers: Vec3::ZERO,
         }

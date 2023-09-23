@@ -29,7 +29,12 @@ fn rotate_camera(mut cameras: Query<(&mut Transform, &mut FlyingCamera, &Movemen
         .iter_mut()
         .filter(|(_, camera, input)| camera.enabled && input.rotate_direction != Vec3::ZERO)
     {
-        let new_rotation = camera.current_eulers + input.rotate_direction * camera.rotate_speed;
+        let mut new_rotation = camera.current_eulers + input.rotate_direction * camera.rotate_speed;
+        new_rotation.x = new_rotation.x.clamp(
+            -camera.max_pitch_degrees.to_radians(),
+            camera.max_pitch_degrees.to_radians(),
+        );
+
         camera.current_eulers = new_rotation;
 
         transform.rotation = Quat::from_euler(
