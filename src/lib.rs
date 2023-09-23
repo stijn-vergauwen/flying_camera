@@ -15,7 +15,26 @@ impl Plugin for FlyingCameraPlugin {
 }
 
 #[derive(Component)]
-pub struct FlyingCamera;
+pub struct FlyingCamera {
+    pub enabled: bool,
+    pub move_speed: f32,
+    pub rotate_speed: f32,
+    pub max_pitch_degrees: f32,
+    /// Current rotation in eulers, used for updating the transform's rotation.
+    current_eulers: Vec3,
+}
+
+impl Default for FlyingCamera {
+    fn default() -> Self {
+        Self {
+            enabled: true,
+            move_speed: 4.0,
+            rotate_speed: 0.2,
+            max_pitch_degrees: 90.0,
+            current_eulers: Vec3::ZERO,
+        }
+    }
+}
 
 #[derive(Bundle)]
 pub struct FlyingCameraBundle {
@@ -26,7 +45,7 @@ pub struct FlyingCameraBundle {
 impl Default for FlyingCameraBundle {
     fn default() -> Self {
         Self {
-            flying_camera: FlyingCamera,
+            flying_camera: FlyingCamera::default(),
             movement_input: MovementInput::default(),
         }
     }

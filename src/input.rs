@@ -105,5 +105,5 @@ fn movement_input_as_vector(keybinds: &MovementKeybinds, input: &Input<KeyCode>)
 
 /// Takes the mouse_motion.delta value and turns it into an euler rotation with an YXZ rotation order.
 fn mouse_movement_to_euler(movement: Vec2) -> Vec3 {
-    Vec3::new(-movement.y, -movement.x, 0.0)
+    Vec3::new(-movement.y.to_radians(), -movement.x.to_radians(), 0.0)
 }

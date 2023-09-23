@@ -16,24 +16,27 @@ fn move_camera(
 ) {
     for (mut transform, camera, input) in cameras
         .iter_mut()
-        .filter(|(_, _, input)| input.move_direction != Vec3::ZERO)
+        .filter(|(_, camera, input)| camera.enabled && input.move_direction != Vec3::ZERO)
     {
         let rotated_input = transform.rotation * input.move_direction;
 
-        transform.translation += rotated_input * time.delta_seconds();
+        transform.translation += rotated_input * camera.move_speed * time.delta_seconds();
     }
 }
 
-fn rotate_camera(mut cameras: Query<(&mut Transform, &FlyingCamera, &MovementInput)>) {
-    for (mut transform, camera, input) in cameras
+fn rotate_camera(mut cameras: Query<(&mut Transform, &mut FlyingCamera, &MovementInput)>) {
+    for (mut transform, mut camera, input) in cameras
         .iter_mut()
-        .filter(|(_, _, input)| input.rotate_direction != Vec3::ZERO)
+        .filter(|(_, camera, input)| camera.enabled && input.rotate_direction != Vec3::ZERO)
     {
-        let (current_y, current_x, current_z) = transform.rotation.to_euler(EulerRot::YXZ);
+        let new_rotation = camera.current_eulers + input.rotate_direction * camera.rotate_speed;
+        camera.current_eulers = new_rotation;
 
-        let new_y = current_y + input.rotate_direction.y.to_radians();
-        let new_x = current_x + input.rotate_direction.x.to_radians();
-
-        transform.rotation = Quat::from_euler(EulerRot::YXZ, new_y, new_x, current_z);
+        transform.rotation = Quat::from_euler(
+            EulerRot::YXZ,
+            new_rotation.y,
+            new_rotation.x,
+            new_rotation.z,
+        );
     }
 }
