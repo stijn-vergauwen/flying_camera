@@ -54,7 +54,7 @@ fn update_movement_input(
     input: Res<Input<KeyCode>>,
 ) {
     for mut movement_input in movement_inputs.iter_mut() {
-        let direction = get_movement_direction(&movement_input.keybinds, &input);
+        let direction = movement_input_as_vector(&movement_input.keybinds, &input);
 
         movement_input.move_direction = direction;
     }
@@ -73,7 +73,7 @@ fn update_rotation_input(
     }
 }
 
-fn get_movement_direction(keybinds: &MovementKeybinds, input: &Input<KeyCode>) -> Vec3 {
+fn movement_input_as_vector(keybinds: &MovementKeybinds, input: &Input<KeyCode>) -> Vec3 {
     let mut direction = Vec3::ZERO;
 
     if input.pressed(keybinds.forward) {
@@ -92,7 +92,15 @@ fn get_movement_direction(keybinds: &MovementKeybinds, input: &Input<KeyCode>) -
         direction.x += 1.0;
     }
 
-    direction.normalize_or_zero()
+    if input.pressed(keybinds.up) {
+        direction.y += 1.0;
+    }
+
+    if input.pressed(keybinds.down) {
+        direction.y -= 1.0;
+    }
+
+    direction
 }
 
 /// Takes the mouse_motion.delta value and turns it into an euler rotation with an YXZ rotation order.

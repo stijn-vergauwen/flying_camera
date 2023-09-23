@@ -1,16 +1,16 @@
 pub mod input;
 mod interaction;
 mod movement;
-mod rotation;
 
 use bevy::prelude::*;
 use input::{MovementInput, MovementInputPlugin};
+use movement::FlyingCameraMovementPlugin;
 
 pub struct FlyingCameraPlugin;
 
 impl Plugin for FlyingCameraPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins(MovementInputPlugin);
+        app.add_plugins((MovementInputPlugin, FlyingCameraMovementPlugin));
     }
 }
 
