@@ -1,12 +1,23 @@
 //! Demonstrates the default behaviour.
 
 use bevy::prelude::*;
+use flying_camera::{FlyingCameraBundle, FlyingCameraPlugin};
 
 fn main() {
     App::new()
-        .add_plugins(DefaultPlugins)
-        .add_systems(Startup, spawn_scene_objects)
+        .add_plugins((DefaultPlugins, FlyingCameraPlugin))
+        .add_systems(Startup, (spawn_scene_objects, spawn_flying_camera))
         .run();
+}
+
+fn spawn_flying_camera(mut commands: Commands) {
+    commands.spawn((
+        Camera3dBundle {
+            transform: Transform::from_translation(Vec3::new(0.0, 3.0, 6.0)),
+            ..default()
+        },
+        FlyingCameraBundle::default(),
+    ));
 }
 
 fn spawn_scene_objects(
@@ -16,9 +27,9 @@ fn spawn_scene_objects(
 ) {
     // Ground
     commands.spawn((PbrBundle {
-        mesh: meshes.add(shape::Box::new(200.0, 0.2, 200.0).into()),
+        mesh: meshes.add(shape::Box::new(10.0, 0.2, 10.0).into()),
         material: materials.add(StandardMaterial {
-            base_color: Color::GRAY,
+            base_color: Color::GREEN,
             ..default()
         }),
         transform: Transform::from_xyz(0.0, 0.0, 0.0),
