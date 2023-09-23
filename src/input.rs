@@ -1,10 +1,10 @@
-use bevy::prelude::*;
+use bevy::{input::mouse::MouseMotion, prelude::*};
 
 pub struct MovementInputPlugin;
 
 impl Plugin for MovementInputPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, update_movement_input);
+        app.add_systems(Update, (update_movement_input, update_rotation_input));
     }
 }
 
@@ -60,7 +60,20 @@ fn update_movement_input(
     }
 }
 
-fn get_movement_direction(keybinds: &MovementKeybinds, input: &Res<Input<KeyCode>>) -> Vec3 {
+fn update_rotation_input(
+    mut movement_inputs: Query<&mut MovementInput>,
+    mut mouse_motion: EventReader<MouseMotion>,
+) {
+    for mut movement_input in movement_inputs.iter_mut() {
+        let total_delta = mouse_motion
+            .iter()
+            .fold(Vec2::ZERO, |sum, motion| sum + motion.delta);
+
+        movement_input.rotate_direction = mouse_movement_to_euler(total_delta);
+    }
+}
+
+fn get_movement_direction(keybinds: &MovementKeybinds, input: &Input<KeyCode>) -> Vec3 {
     let mut direction = Vec3::ZERO;
 
     if input.pressed(keybinds.forward) {
@@ -80,4 +93,9 @@ fn get_movement_direction(keybinds: &MovementKeybinds, input: &Res<Input<KeyCode
     }
 
     direction.normalize_or_zero()
+}
+
+/// Takes the mouse_motion.delta value and turns it into an euler rotation with an YXZ rotation order.
+fn mouse_movement_to_euler(movement: Vec2) -> Vec3 {
+    Vec3::new(-movement.y, -movement.x, 0.0)
 }
