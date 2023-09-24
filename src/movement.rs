@@ -16,7 +16,7 @@ fn move_camera(
 ) {
     for (mut transform, camera, input) in cameras
         .iter_mut()
-        .filter(|(_, camera, input)| camera.enabled && input.move_direction != Vec3::ZERO)
+        .filter(|(_, camera, input)| camera.enabled && input.has_movement())
     {
         let rotated_input = transform.rotation * input.move_direction;
         let scaled_input = rotated_input * camera.get_movement_speed(input.speed_up);
@@ -28,21 +28,24 @@ fn move_camera(
 fn rotate_camera(mut cameras: Query<(&mut Transform, &mut FlyingCamera, &MovementInput)>) {
     for (mut transform, mut camera, input) in cameras
         .iter_mut()
-        .filter(|(_, camera, input)| camera.enabled && input.rotate_direction != Vec3::ZERO)
+        .filter(|(_, camera, input)| camera.enabled && input.has_rotation())
     {
-        let mut new_rotation = camera.current_eulers + input.rotate_direction * camera.rotate_speed;
+        let new_rotation = camera.current_eulers + input.rotate_direction * camera.rotate_speed;
 
-        new_rotation.x = new_rotation.x.clamp(
-            -camera.max_pitch_degrees.to_radians(),
-            camera.max_pitch_degrees.to_radians(),
-        );
+        let clamped_rotation = clamp_pitch(new_rotation, camera.max_pitch_degrees.to_radians());
 
-        camera.current_eulers = new_rotation;
+        camera.current_eulers = clamped_rotation;
         transform.rotation = Quat::from_euler(
             EulerRot::YXZ,
-            new_rotation.y,
-            new_rotation.x,
-            new_rotation.z,
+            clamped_rotation.y,
+            clamped_rotation.x,
+            clamped_rotation.z,
         );
     }
+}
+
+fn clamp_pitch(mut eulers: Vec3, max_pitch_radians: f32) -> Vec3 {
+    eulers.x = eulers.x.clamp(-max_pitch_radians, max_pitch_radians);
+
+    eulers
 }

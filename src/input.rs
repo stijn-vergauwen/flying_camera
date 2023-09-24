@@ -23,6 +23,18 @@ pub struct MovementInput {
     pub keybinds: MovementKeybinds,
 }
 
+impl MovementInput {
+    /// If the `move_direction` is not zero.
+    pub fn has_movement(&self) -> bool {
+        self.move_direction != Vec3::ZERO
+    }
+
+    /// If the `rotate_direction` is not zero.
+    pub fn has_rotation(&self) -> bool {
+        self.rotate_direction != Vec3::ZERO
+    }
+}
+
 impl Default for MovementInput {
     fn default() -> Self {
         Self {
@@ -121,7 +133,7 @@ fn movement_input_as_vector(keybinds: &MovementKeybinds, input: &Input<KeyCode>)
     direction
 }
 
-/// Takes the mouse_motion.delta value and turns it into an euler rotation with an YXZ rotation order.
+/// Takes the mouse_motion.delta value and turns it into an euler angle.
 fn mouse_movement_to_euler(movement: Vec2) -> Vec3 {
     Vec3::new(-movement.y.to_radians(), -movement.x.to_radians(), 0.0)
 }
