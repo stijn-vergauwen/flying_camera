@@ -1,5 +1,4 @@
 pub mod input;
-mod interaction;
 mod movement;
 
 use bevy::{
@@ -20,15 +19,34 @@ impl Plugin for FlyingCameraPlugin {
 
 #[derive(Component)]
 pub struct FlyingCamera {
-    pub enabled: bool,
+    /// A modifier for the regular movement speed of this camera.
     pub move_speed: f32,
+
+    /// The amount that `move_speed` gets multiplied by when holding the speed-up key.
     pub speed_up_multiplier: f32,
+
+    /// A modifier for the speed at which this camera rotates.
     pub rotate_speed: f32,
+
+    /// The maximum degrees this camera can rotate up & down.
     pub max_pitch_degrees: f32,
+
+    /// If this camera is currently enabled, disabled camera's don't move or rotate.
+    pub enabled: bool,
+
+    /// If this camera should get enabled by holding the button set in `button_to_enable`.
     pub enable_on_button_hold: bool,
+
+    /// The mouse button used to enable this camera, if `enable_on_button_hold` is set to true.
     pub button_to_enable: MouseButton,
-    /// Current rotation in eulers, used for updating the transform's rotation.
-    current_eulers: Vec3,
+
+    /// If the cursor should be hidden when this camera is enabled.
+    pub hide_cursor_when_enabled: bool,
+
+    /// Current rotation in eulers.
+    /// 
+    /// Is set automatically, used for updating the transform's rotation.
+    pub current_eulers: Vec3,
 }
 
 impl FlyingCamera {
@@ -44,13 +62,14 @@ impl FlyingCamera {
 impl Default for FlyingCamera {
     fn default() -> Self {
         Self {
-            enabled: false,
             move_speed: 3.0,
             speed_up_multiplier: 3.0,
             rotate_speed: 0.04,
             max_pitch_degrees: 90.0,
+            enabled: false,
             enable_on_button_hold: true,
             button_to_enable: MouseButton::Right,
+            hide_cursor_when_enabled: true,
             current_eulers: Vec3::ZERO,
         }
     }
@@ -72,7 +91,10 @@ impl Default for FlyingCameraBundle {
 }
 
 fn update_camera_enabled(mut cameras: Query<&mut FlyingCamera>, input: Res<Input<MouseButton>>) {
-    for mut camera in cameras.iter_mut() {
+    for mut camera in cameras
+        .iter_mut()
+        .filter(|camera| camera.enable_on_button_hold)
+    {
         camera.enabled = input.pressed(camera.button_to_enable);
     }
 }
@@ -82,7 +104,10 @@ fn update_cursor_visibility(
     mut window: Query<&mut Window, With<PrimaryWindow>>,
 ) {
     if let Ok(mut window) = window.get_single_mut() {
-        for camera in cameras.iter() {
+        for camera in cameras
+            .iter()
+            .filter(|camera| camera.hide_cursor_when_enabled)
+        {
             if camera.enabled == window.cursor.visible {
                 set_cursor_visibility(&mut window, !camera.enabled);
             }
