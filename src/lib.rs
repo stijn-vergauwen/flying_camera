@@ -2,7 +2,10 @@ pub mod input;
 mod interaction;
 mod movement;
 
-use bevy::prelude::*;
+use bevy::{
+    prelude::*,
+    window::{CursorGrabMode, PrimaryWindow},
+};
 use input::{MovementInput, MovementInputPlugin};
 use movement::FlyingCameraMovementPlugin;
 
@@ -66,8 +69,27 @@ impl Default for FlyingCameraBundle {
     }
 }
 
-fn update_camera_enabled(mut cameras: Query<&mut FlyingCamera>, input: Res<Input<MouseButton>>) {
+fn update_camera_enabled(
+    mut cameras: Query<&mut FlyingCamera>,
+    mut window: Query<&mut Window, With<PrimaryWindow>>,
+    input: Res<Input<MouseButton>>,
+) {
     for mut camera in cameras.iter_mut() {
-        camera.enabled = input.pressed(camera.button_to_enable);
+        let set_enabled = input.pressed(camera.button_to_enable);
+        if set_enabled != camera.enabled {
+            camera.enabled = set_enabled;
+            if let Ok(mut window) = window.get_single_mut() {
+                set_cursor_visibility(&mut window, !set_enabled);
+            }
+        }
+    }
+}
+
+fn set_cursor_visibility(window: &mut Window, set_visible: bool) {
+    window.cursor.visible = set_visible;
+
+    window.cursor.grab_mode = match set_visible {
+        true => CursorGrabMode::None,
+        false => CursorGrabMode::Locked,
     }
 }
