@@ -4,7 +4,14 @@ pub struct MovementInputPlugin;
 
 impl Plugin for MovementInputPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, (update_movement_input, update_rotation_input));
+        app.add_systems(
+            Update,
+            (
+                update_movement_input,
+                update_rotation_input,
+                update_speed_up_input,
+            ),
+        );
     }
 }
 
@@ -12,6 +19,7 @@ impl Plugin for MovementInputPlugin {
 pub struct MovementInput {
     pub move_direction: Vec3,
     pub rotate_direction: Vec3,
+    pub speed_up: bool,
     pub keybinds: MovementKeybinds,
 }
 
@@ -20,6 +28,7 @@ impl Default for MovementInput {
         Self {
             move_direction: Vec3::ZERO,
             rotate_direction: Vec3::ZERO,
+            speed_up: false,
             keybinds: MovementKeybinds::default(),
         }
     }
@@ -70,6 +79,15 @@ fn update_rotation_input(
             .fold(Vec2::ZERO, |sum, motion| sum + motion.delta);
 
         movement_input.rotate_direction = mouse_movement_to_euler(total_delta);
+    }
+}
+
+fn update_speed_up_input(
+    mut movement_inputs: Query<&mut MovementInput>,
+    input: Res<Input<KeyCode>>,
+) {
+    for mut movement_input in movement_inputs.iter_mut() {
+        movement_input.speed_up = input.pressed(movement_input.keybinds.speed_up);
     }
 }
 
