@@ -14,7 +14,7 @@ pub struct FlyingCameraPlugin;
 impl Plugin for FlyingCameraPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins((MovementInputPlugin, FlyingCameraMovementPlugin))
-            .add_systems(Update, update_camera_enabled);
+            .add_systems(Update, (update_camera_enabled, update_cursor_visibility));
     }
 }
 
@@ -25,6 +25,7 @@ pub struct FlyingCamera {
     pub speed_up_multiplier: f32,
     pub rotate_speed: f32,
     pub max_pitch_degrees: f32,
+    pub enable_on_button_hold: bool,
     pub button_to_enable: MouseButton,
     /// Current rotation in eulers, used for updating the transform's rotation.
     current_eulers: Vec3,
@@ -43,11 +44,12 @@ impl FlyingCamera {
 impl Default for FlyingCamera {
     fn default() -> Self {
         Self {
-            enabled: true,
+            enabled: false,
             move_speed: 3.0,
             speed_up_multiplier: 3.0,
-            rotate_speed: 0.1,
+            rotate_speed: 0.04,
             max_pitch_degrees: 90.0,
+            enable_on_button_hold: true,
             button_to_enable: MouseButton::Right,
             current_eulers: Vec3::ZERO,
         }
@@ -69,17 +71,20 @@ impl Default for FlyingCameraBundle {
     }
 }
 
-fn update_camera_enabled(
-    mut cameras: Query<&mut FlyingCamera>,
-    mut window: Query<&mut Window, With<PrimaryWindow>>,
-    input: Res<Input<MouseButton>>,
-) {
+fn update_camera_enabled(mut cameras: Query<&mut FlyingCamera>, input: Res<Input<MouseButton>>) {
     for mut camera in cameras.iter_mut() {
-        let set_enabled = input.pressed(camera.button_to_enable);
-        if set_enabled != camera.enabled {
-            camera.enabled = set_enabled;
-            if let Ok(mut window) = window.get_single_mut() {
-                set_cursor_visibility(&mut window, !set_enabled);
+        camera.enabled = input.pressed(camera.button_to_enable);
+    }
+}
+
+fn update_cursor_visibility(
+    cameras: Query<&FlyingCamera, Changed<FlyingCamera>>,
+    mut window: Query<&mut Window, With<PrimaryWindow>>,
+) {
+    if let Ok(mut window) = window.get_single_mut() {
+        for camera in cameras.iter() {
+            if camera.enabled == window.cursor.visible {
+                set_cursor_visibility(&mut window, !camera.enabled);
             }
         }
     }
