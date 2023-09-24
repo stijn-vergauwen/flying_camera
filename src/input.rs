@@ -24,6 +24,14 @@ pub struct MovementInput {
 }
 
 impl MovementInput {
+    /// Returns a new instance with the given keybinds.
+    pub fn with_keybinds(keybinds: MovementKeybinds) -> Self {
+        Self {
+            keybinds,
+            ..default()
+        }
+    }
+
     /// If the `move_direction` is not zero.
     pub fn has_movement(&self) -> bool {
         self.move_direction != Vec3::ZERO
