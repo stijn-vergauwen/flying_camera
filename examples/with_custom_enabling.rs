@@ -1,15 +1,13 @@
-//! Demonstrates changing of different camera settings.
+//! Demonstrates enabling / disabling the camera with our own code.
 
 use bevy::prelude::*;
-use flying_camera::{
-    input::{MovementInput, MovementKeybinds},
-    FlyingCamera, FlyingCameraBundle, FlyingCameraPlugin,
-};
+use flying_camera::{FlyingCamera, FlyingCameraBundle, FlyingCameraPlugin};
 
 fn main() {
     App::new()
         .add_plugins((DefaultPlugins, FlyingCameraPlugin))
         .add_systems(Startup, (spawn_scene_objects, spawn_flying_camera))
+        .add_systems(Update, toggle_enabled_on_key_press)
         .run();
 }
 
@@ -21,35 +19,28 @@ fn spawn_flying_camera(mut commands: Commands) {
         },
         FlyingCameraBundle {
             flying_camera: FlyingCamera {
-                // Make the camera go faster.
-                move_speed: 10.0,
+                // Turn off the default behaviour of holding a mouse button to enable the camera.
+                enable_on_button_hold: false,
 
-                // And even faster when speeding up.
-                speed_up_multiplier: 5.0,
+                // Notice that the cursor will still get hidden when we enable the camera.
+                hide_cursor_when_enabled: true,
 
-                // Enable the camera with middle mouse click instead of right.
-                button_to_enable: MouseButton::Middle,
-
-                // Leave the cursor visible when moving.
-                hide_cursor_when_enabled: false,
-
-                // Limit up & down rotation to 45 degrees.
-                max_pitch_degrees: 45.0,
-
-                // And leave the rest the same.
                 ..default()
             },
-
-            // Create a MovementInput struct with custom keybinds.
-            movement_input: MovementInput::with_keybinds(MovementKeybinds {
-                // Move the camera down with the left alt key instead of ctrl.
-                down: KeyCode::AltLeft,
-
-                // And leave the rest the same.
-                ..default()
-            }),
+            ..default()
         },
     ));
+}
+
+// This system enables / disables all FlyingCamera's when the F key is pressed.
+fn toggle_enabled_on_key_press(mut cameras: Query<&mut FlyingCamera>, input: Res<Input<KeyCode>>) {
+    let toggle_key = KeyCode::F;
+
+    if input.just_pressed(toggle_key) {
+        for mut camera in cameras.iter_mut() {
+            camera.enabled = !camera.enabled;
+        }
+    }
 }
 
 // Spawn objects so we have something to look at.
@@ -72,7 +63,7 @@ fn spawn_scene_objects(
     // Cube
     commands.spawn(PbrBundle {
         mesh: meshes.add(Mesh::from(shape::Cube { size: 1.0 })),
-        material: materials.add(Color::CYAN.into()),
+        material: materials.add(Color::BISQUE.into()),
         transform: Transform::from_xyz(0.0, 0.7, 0.0),
         ..default()
     });

@@ -5,6 +5,7 @@ use flying_camera::{FlyingCameraBundle, FlyingCameraPlugin};
 
 fn main() {
     App::new()
+        // 1. Add FlyingCameraPlugin to plugins.
         .add_plugins((DefaultPlugins, FlyingCameraPlugin))
         .add_systems(Startup, (spawn_scene_objects, spawn_flying_camera))
         .run();
@@ -16,10 +17,12 @@ fn spawn_flying_camera(mut commands: Commands) {
             transform: Transform::from_translation(Vec3::new(0.0, 3.0, 6.0)),
             ..default()
         },
+        // 2. Add FlyingCameraBundle to a camera.
         FlyingCameraBundle::default(),
     ));
 }
 
+// Spawn objects so we have something to look at.
 fn spawn_scene_objects(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
