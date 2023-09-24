@@ -10,7 +10,8 @@ pub struct FlyingCameraPlugin;
 
 impl Plugin for FlyingCameraPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins((MovementInputPlugin, FlyingCameraMovementPlugin));
+        app.add_plugins((MovementInputPlugin, FlyingCameraMovementPlugin))
+            .add_systems(Update, update_camera_enabled);
     }
 }
 
@@ -21,6 +22,7 @@ pub struct FlyingCamera {
     pub speed_up_multiplier: f32,
     pub rotate_speed: f32,
     pub max_pitch_degrees: f32,
+    pub button_to_enable: MouseButton,
     /// Current rotation in eulers, used for updating the transform's rotation.
     current_eulers: Vec3,
 }
@@ -43,6 +45,7 @@ impl Default for FlyingCamera {
             speed_up_multiplier: 3.0,
             rotate_speed: 0.1,
             max_pitch_degrees: 90.0,
+            button_to_enable: MouseButton::Right,
             current_eulers: Vec3::ZERO,
         }
     }
@@ -60,5 +63,11 @@ impl Default for FlyingCameraBundle {
             flying_camera: FlyingCamera::default(),
             movement_input: MovementInput::default(),
         }
+    }
+}
+
+fn update_camera_enabled(mut cameras: Query<&mut FlyingCamera>, input: Res<Input<MouseButton>>) {
+    for mut camera in cameras.iter_mut() {
+        camera.enabled = input.pressed(camera.button_to_enable);
     }
 }
