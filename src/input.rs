@@ -95,7 +95,7 @@ fn update_rotation_input(
 ) {
     for mut movement_input in movement_inputs.iter_mut() {
         let total_delta = mouse_motion
-            .iter()
+            .read()
             .fold(Vec2::ZERO, |sum, motion| sum + motion.delta);
 
         movement_input.rotate_direction = mouse_movement_to_euler(total_delta);
